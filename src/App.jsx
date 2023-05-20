@@ -1,34 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useCallback } from 'react'
+import { Movies } from './components/Movies'
+import { useMovies } from './hooks/useMovies'
+import { useSearch } from './hooks/useSearch'
+import debounce from 'just-debounce-it'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+function App () {
+  const [sort, setSort] = useState(false)
+  const { search, setSearch, error } = useSearch()
+  const { movies, getMovies, loading } = useMovies({ search, sort })
+
+  const debouncedGetMovies = useCallback(
+    debounce(search => {
+      getMovies({ search })
+    }, 300)
+    , [getMovies])
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    getMovies({ search })
+  }
+
+  const handleSort = () => {
+    setSort(!sort)
+  }
+
+  const handleChange = (event) => {
+    const newSearch = event.target.value
+    setSearch(newSearch)
+    debouncedGetMovies(newSearch)
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className='page'>
+      <header>
+        <h1>Buscador de peliculas</h1>
+        <form className='form' onSubmit={handleSubmit}>
+          <input
+            autoFocus
+            style={{
+              border: '1px solid transparent',
+              borderColor: error ? 'red' : 'transparent'
+            }} type="text" onChange={handleChange} value={search} placeholder="Avengers, Matrix, Marvel.." />
+          <input type="checkbox" checked={sort} onChange={handleSort} />
+          <button>Buscar</button>
+        </form>
+        {error && <p style={{ color: 'red', margin: 0, marginLeft: '5px' }}>{error}</p>}
+      </header>
+
+      <main>
+        {
+          loading
+            ? <p>Cargando...</p>
+            : <Movies movies={movies} />
+        }
+      </main>
+    </div>
   )
 }
 
