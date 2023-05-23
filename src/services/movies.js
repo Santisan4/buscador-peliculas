@@ -1,5 +1,4 @@
-import { IS_DEVELOPMENT } from '../../config'
-const API_KEY = IS_DEVELOPMENT ? '15e94cba' : process.env.API_KEY
+const API_KEY = '15e94cba'
 
 export const searchMovies = async ({ search }) => {
   // Validamos que el parámetro search no esté vacío
